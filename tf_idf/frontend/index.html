@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TF-IDF Анализ</title>
+    <link rel="stylesheet" href="/frontend/styles/index.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Анализ TF-IDF</h2>
+        <form id="upload-form">
+            <div class="form-group">
+                <label for="file-input">Выберите текстовый файл:</label>
+                <input type="file" id="file-input" name="file" required>
+            </div>
+            <button type="submit" class="btn">Анализировать</button>
+        </form>
+
+        <table id="results-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Слово</th>
+                    <th>TF</th>
+                    <th>IDF</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('file-input');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch('http://127.0.0.1:8000/tf_idf', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                alert("Ошибка при анализе файла");
+                return;
+            }
+
+            const data = await response.json();
+
+            const table = document.getElementById('results-table');
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            for (const [word, stats] of Object.entries(data)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${word}</td>
+                    <td>${stats.tf.toFixed(4)}</td>
+                    <td>${stats.idf.toFixed(4)}</td>
+                `;
+                tbody.appendChild(row);
+            }
+
+            table.style.display = 'table';
+        });
+    </script>
+</body>
+</html>
